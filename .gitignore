@@ -7,6 +7,11 @@ playwright-report/
 blob-report/
 playwright/.cache/
 
+# AI tooling (local only)
+.docs/
+.agent/
+.github/
+
 # IDE
 .vscode/
 *.code-workspace
@@ -15,7 +20,3 @@ playwright/.cache/
 Thumbs.db
 Desktop.ini
 .DS_Store
-
-# AG generated artifacts (keep in git but ignore temp files)
-.docs/ag-generated/*.tmp
-.docs/vs-generated/*.tmp
