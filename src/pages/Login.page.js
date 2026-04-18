@@ -1,3 +1,5 @@
+'use strict';
+
 const { BasePage } = require('./BasePage');
 const { LoginElements } = require('../elements/Login.elements');
 const { baseUrl } = require('../../config/execution.config');
@@ -12,13 +14,13 @@ class LoginPage extends BasePage {
   }
 
   async login(username, password) {
-    await LoginElements.usernameInput(this.page).fill(username);
-    await LoginElements.passwordInput(this.page).fill(password);
-    await LoginElements.loginButton(this.page).click();
+    await this.fill('Login.usernameInput', LoginElements.usernameInput, username);
+    await this.fill('Login.passwordInput', LoginElements.passwordInput, password);
+    await this.click('Login.loginButton', LoginElements.loginButton);
   }
 
   async getErrorMessage() {
-    return LoginElements.errorMessage(this.page).textContent();
+    return this.getText('Login.errorMessage', LoginElements.errorMessage);
   }
 }
 

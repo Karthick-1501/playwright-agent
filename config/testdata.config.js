@@ -1,3 +1,5 @@
+'use strict';
+
 const _data = {
   login: {
     standard_user: {
@@ -8,11 +10,15 @@ const _data = {
       username: 'locked_out_user',
       password: 'secret_sauce',
     },
+    invalid_user: {
+      username: 'invalid_user',
+      password: 'wrong_password',
+    },
   },
 };
 
 const TestData = {
-  get: (path) => path.split('.').reduce((obj, key) => obj?.[key], _data),
+  get: (dotPath) => dotPath.split('.').reduce((obj, key) => obj?.[key], _data),
 };
 
 module.exports = { TestData };

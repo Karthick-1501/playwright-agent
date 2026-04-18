@@ -1,3 +1,5 @@
+'use strict';
+
 const { test, expect } = require('@playwright/test');
 const { LoginPage } = require('../../pages/Login.page');
 const { TestData } = require('../../../config/testdata.config');

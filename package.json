@@ -1,16 +1,36 @@
 {
-  "name": "playwright",
-  "version": "1.0.0",
-  "description": "",
+  "name": "playwright-ai-agent",
+  "version": "2.0.0",
+  "description": "AI-powered Playwright test automation agent with self-healing selector registry",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx playwright test",
+    "posttest": "npm run test:registry",
+    "test:headed": "npx playwright test --headed",
+    "test:ci": "CI=true npx playwright test",
+    "scout": "node src/agent/scout.js",
+    "agent": "node src/agent/cli.js",
+    "heal": "node src/agent/cli.js --heal",
+    "report": "node src/agent/cli.js --report",
+    "test:registry": "node tests/registry-manager.test.js && node tests/heal.test.js && node tests/basepage-errors.test.js && node tests/merge-save.test.js",
+    "lint": "eslint src --ext .js",
+    "lint:fix": "eslint src --ext .js --fix"
   },
-  "keywords": [],
+  "keywords": [
+    "playwright",
+    "test-automation",
+    "ai-agent",
+    "self-healing",
+    "saucedemo"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
     "@playwright/test": "^1.59.1"
+  },
+  "devDependencies": {
+    "eslint": "^10.2.0"
   }
 }

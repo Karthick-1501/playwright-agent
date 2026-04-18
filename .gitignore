@@ -2,21 +2,25 @@
 node_modules/
 
 # Playwright
-test-results/
 playwright-report/
-blob-report/
-playwright/.cache/
+test-results/
 
-# AI tooling (local only)
-.docs/
+# Agent runtime data (bootstrapped by globalSetup)
 .agent/
-.github/
 
-# IDE
+# Environment
+.env
+.env.local
+
+# Editor
 .vscode/
-*.code-workspace
+*.swp
+*.swo
 
 # OS
-Thumbs.db
-Desktop.ini
 .DS_Store
+Thumbs.db
+
+# Temp
+*.tmp
+.tmp-*
