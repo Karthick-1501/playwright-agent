@@ -1,21 +1,12 @@
 'use strict';
 
 const _data = {
-  login: {
-    standard_user: {
-      username: 'standard_user',
-      password: 'secret_sauce',
-    },
-    locked_out_user: {
-      username: 'locked_out_user',
-      password: 'secret_sauce',
-    },
-    invalid_user: {
-      username: 'invalid_user',
-      password: 'wrong_password',
-    },
-  },
+
   hyva_login: {
+    standard_user: {
+      email: 'test@example.com',
+      password: 'password123',
+    },
     invalid_user: {
       email: 'not-an-email@example.com',
       password: 'wrong_password',
