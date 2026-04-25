@@ -24,3 +24,7 @@ Thumbs.db
 # Temp
 *.tmp
 .tmp-*
+
+# AI Agent Workspaces
+.docs/ag-generated/
+.docs/vs-generated/

@@ -1,3 +1,3 @@
 module.exports = {
-  baseUrl: 'https://www.saucedemo.com',
+  baseUrl: 'https://demo.hyva.io',
 };

@@ -15,6 +15,12 @@ const _data = {
       password: 'wrong_password',
     },
   },
+  hyva_login: {
+    invalid_user: {
+      email: 'not-an-email@example.com',
+      password: 'wrong_password',
+    },
+  },
 };
 
 const TestData = {
