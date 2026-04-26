@@ -23,6 +23,7 @@ Elements → BasePage → Page Object → Test
 | Stale index halt + ack | Orchestrator |
 | Registry state resolution | Orchestrator |
 | Scout element filtering | Orchestrator |
+| Interactive element input (Gate 4.5) | Orchestrator |
 | Pending patch deduplication | Orchestrator |
 | Tier 3 permission gate | Orchestrator |
 | Post-call envelope validation | Orchestrator |
@@ -143,6 +144,7 @@ src/tests/{feature}/{name}.spec.js   # kebab-case feature and name
 // [SCOUT-GENERATED]
 // [AGENT-GENERATED]
 // [AGENT-GENERATED: DOM-ONLY]
+// [USER-PROVIDED]
 // [TIER-3: VERIFY STABILITY]
 // [QUARANTINE: MANUAL REVIEW REQUIRED - {detail}]
 ```
@@ -171,6 +173,7 @@ npm run scout -- --url https://demo.hyva.io/customer/account/login/ --page HyvaL
 npm run heal
 npm run report
 npm run agent -- --prompt "generate login test" --page HyvaLogin
+npm run agent -- --prompt "generate login test" --page HyvaLogin --interactive
 ```
 
 ## Phase Status
@@ -181,3 +184,4 @@ npm run agent -- --prompt "generate login test" --page HyvaLogin
 - ✅ Phase 4: Code Generator (orchestrator + agent)
 - ✅ Phase 5: CLI Orchestration
 - ✅ Phase 6: Validation (CI + unit tests)
+- ✅ Phase 7: Interactive Mode (Gate 4.5 — stdin fallback for unscanned elements)

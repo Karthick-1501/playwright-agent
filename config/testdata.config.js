@@ -12,6 +12,21 @@ const _data = {
       password: 'wrong_password',
     },
   },
+  hyvaHome: {
+    url: 'https://demo.hyva.io/',
+
+    aimAnalogWatch: {
+      price: '$45.00'
+    },
+
+    enduranceWatch: {
+      price: '$49.00'
+    },
+
+    watchSubtotal: {
+      aimPlusEndurance: '$94.00',
+    },
+  },
 };
 
 const TestData = {

@@ -83,7 +83,7 @@ async function main() {
 
   // ── Agent generation mode ───────────────────────────────────────────────────
   if (!args.prompt) {
-    console.error('Usage: node src/agent/cli.js --prompt "<request>" [--page <PageName>] [--tier3]');
+    console.error('Usage: node src/agent/cli.js --prompt "<request>" [--page <PageName>] [--tier3] [--interactive]');
     console.error('       node src/agent/cli.js --heal');
     console.error('       node src/agent/cli.js --report');
     process.exit(1);
@@ -94,6 +94,7 @@ async function main() {
       page: args.page || 'Login',
       tier3Allowed: args.tier3 === true,
       staleAck: args.staleAck === true,
+      interactive: args.interactive === true,
     });
   } catch (err) {
     if (err.code) {

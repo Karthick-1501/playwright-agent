@@ -23,10 +23,11 @@ The Orchestrator acts as the gatekeeper between the user prompt and the AI model
 1.  **Input Presence**: Validates required runtime files exist.
 2.  **Stale Index**: Checks if the method index is out of sync.
 3.  **Registry State Resolution**: Retrieves the health state of elements to determine if they need healing or can be reused.
-4.  **Scout Element Filtering**: Uses heuristics to filter the massive DOM summary down to only elements relevant to the user prompt.
-5.  **Pending Patch Deduplication**: Prevents the agent from proposing duplicate test data configurations.
-6.  **Tier 3 Permission**: Validates if the user allowed lower-tier locators.
-7.  **Post-call Envelope Validation**: Validates the JSON payload returned by the agent for schema adherence and file path security.
+4.  **Scout Element Filtering**: Uses heuristics to filter the DOM summary down to only elements relevant to the user prompt. If no elements match and `--interactive` is set, triggers Gate 4.5.
+5.  **Interactive Element Input** *(Gate 4.5 — fallback)*: When Gate 4 finds no match, the orchestrator pauses and asks the user to describe the missing element via stdin (role, label, tier). The response is normalized into the same scout element shape the agent always expects — the agent is unaware of the difference. No API call is made during stdin input. CLI flag: `--interactive`.
+6.  **Pending Patch Deduplication**: Prevents the agent from proposing duplicate test data configurations.
+7.  **Tier 3 Permission**: Validates if the user allowed lower-tier locators.
+8.  **Post-call Envelope Validation**: Validates the JSON payload returned by the agent for schema adherence and file path security.
 
 ### 3. Self-Healing Registry
 Tracks the success and failure rate of every Playwright interaction at runtime.
@@ -55,7 +56,8 @@ The generated codebase adheres strictly to the following layered pattern. Logic 
 1.  User issues a command via the CLI.
 2.  Orchestrator loads Scout data, TestData configuration, and Registry context.
 3.  Orchestrator executes Gates 1 through 6.
-4.  Orchestrator submits the filtered context to the Anthropic API.
-5.  Model returns a JSON envelope containing code modifications.
-6.  Orchestrator executes Gate 7 to validate the envelope.
-7.  Orchestrator applies file system writes, updates internal index files, and patches elements files if healing occurred.
+4.  If Gate 4 misses and `--interactive` is set, Gate 4.5 pauses for stdin input — no API cost incurred during this wait.
+5.  Orchestrator submits the filtered context to the Anthropic API.
+6.  Model returns a JSON envelope containing code modifications.
+7.  Orchestrator executes Gate 7 to validate the envelope.
+8.  Orchestrator applies file system writes, updates internal index files, and patches elements files if healing occurred.

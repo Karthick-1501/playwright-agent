@@ -28,6 +28,7 @@ Elements → BasePage → Page Object → Test file
 | Stale index halt + ack | Orchestrator |
 | Registry state resolution | Orchestrator |
 | Scout element filtering | Orchestrator |
+| Interactive element input (Gate 4.5) | Orchestrator |
 | Pending patch deduplication | Orchestrator |
 | Tier 3 permission gate | Orchestrator |
 | Post-call envelope validation | Orchestrator |
@@ -105,17 +106,21 @@ npm run agent -- --prompt "generate a login test for standard_user" --page HyvaL
 
 # With Tier 3 locators allowed
 npm run agent -- --prompt "click the submit button" --page HyvaLogin --tier3
+
+# Interactive mode — if Scout hasn't seen the element, describe it via stdin
+npm run agent -- --prompt "click addToCartAimAnalogWatch" --page HyvaHome --interactive
 ```
 
 The orchestrator will:
 1. Validate all input files (Gates 1–2)
 2. Resolve registry state for each element (Gate 3)
 3. Filter Scout data using a 3-strategy heuristic: action-verb targets → noun extraction → page-name fallback (Gate 4)
-4. Build forbidden config key list (Gate 5)
-5. Resolve Tier 3 permission (Gate 6)
-6. Call Claude API with the resolved context (`max_tokens: 8192`)
-7. Validate and apply the response envelope (Gate 7)
-8. Write generated files + sync the elements file via line-based replacement
+4. **If Gate 4 misses and `--interactive` is set (Gate 4.5):** pause and ask you to describe the missing element via stdin — role, visible label, tier. No API cost is incurred during this wait. The answer is normalized into the same scout element shape the agent always expects.
+5. Build forbidden config key list (Gate 5)
+6. Resolve Tier 3 permission (Gate 6)
+7. Call Claude API with the resolved context (`max_tokens: 8192`)
+8. Validate and apply the response envelope (Gate 7)
+9. Write generated files + sync the elements file via line-based replacement
 
 ---
 
@@ -212,6 +217,7 @@ node src/agent/scout.js --url https://example.com/checkout --page Checkout
 | 4 | Code Generator: orchestrator (7 gates) + Claude API | ✅ Complete |
 | 5 | CLI Orchestration: `--prompt`, `--heal`, `--report` | ✅ Complete |
 | 6 | Validation: CI, unit tests, end-to-end | ✅ Complete |
+| 7 | Interactive Mode: Gate 4.5 stdin fallback for unscanned elements | ✅ Complete |
 
 ---
 

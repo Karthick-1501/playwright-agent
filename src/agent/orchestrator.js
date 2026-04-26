@@ -8,7 +8,9 @@
 
 const fs = require('fs');
 const path = require('path');
+const readline = require('readline');
 const Anthropic = require('@anthropic-ai/sdk');
+require('dotenv').config();
 
 const { RegistryManager } = require('../registry/registry-manager');
 const { HealManager } = require('../registry/heal');
@@ -49,6 +51,65 @@ function flattenKeys(obj, prefix = '') {
     }
   }
   return keys;
+}
+
+// ── Interactive element input ────────────────────────────────────────────────
+// Called when Gate 4 finds no scout match and options.interactive is true.
+// Asks the user to describe the missing element via stdin. Returns a synthetic
+// scout element in the exact shape gate4_filterScoutElements() returns, so the
+// agent receives it identically to a real scout element.
+
+async function promptUserForElement(pageName) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  const ask = (question) => new Promise((resolve) => rl.question(question, resolve));
+
+  console.log('\n[ORCHESTRATOR] Gate 4: No scout elements matched your prompt.');
+  console.log('  Interactive mode — describe the missing element:\n');
+
+  const role  = await ask('  Role (button / link / textbox / combobox / checkbox): ');
+  const label = await ask('  Visible label or accessible name (exactly as seen in browser): ');
+  const tier  = await ask('  Tier (1 = getByRole/getByLabel, 2 = data-test attr, 3 = #id): ');
+
+  rl.close();
+
+  // Build camelCase key from label
+  const camel = label
+    .trim()
+    .replace(/[^a-zA-Z0-9 ]/g, ' ')
+    .replace(/\s+(.)/g, (_, c) => c.toUpperCase())
+    .replace(/^(.)/, (_, c) => c.toLowerCase());
+
+  const key = `${pageName}.${camel}`;
+  const tierNum = parseInt(tier.trim(), 10) || 1;
+
+  let locatorSuggestion;
+  if (tierNum === 1) {
+    locatorSuggestion = `page.getByRole('${role.trim()}', { name: '${label.trim()}' })`;
+  } else if (tierNum === 2) {
+    locatorSuggestion = `page.locator('[data-test="${camel}"]')`;
+  } else {
+    locatorSuggestion = `page.locator('#${camel}')`;
+  }
+
+  console.log(`\n[ORCHESTRATOR] Element registered: ${key} → ${locatorSuggestion}`);
+
+  return {
+    key,
+    tag: role.trim() === 'button' ? 'button' : 'a',
+    role: role.trim(),
+    label: label.trim(),
+    tier_suggestion: tierNum,
+    locator_suggestion: locatorSuggestion,
+    disabled: false,
+    source: 'user-provided',
+    dom_only: false,
+    registry_state: 'NONE',
+    resolved_selector: null,
+  };
 }
 
 // ── Gate 1 — Input Presence ──────────────────────────────────────────────────
@@ -100,18 +161,42 @@ function gate3_resolveRegistryState(page, element, registryContext) {
 
 // ── Gate 4 — Scout Element Filtering ─────────────────────────────────────────
 
-const ACTION_VERBS = ['click', 'fill', 'type', 'select', 'check', 'navigate', 'assert', 'verify', 'login', 'enter'];
-const BROAD_VERBS = ['generate', 'create', 'write', 'build', 'make', 'add', 'test'];
+const ACTION_VERBS = ['click', 'fill', 'type', 'select', 'check', 'navigate', 'assert', 'verify',
+  'login', 'enter', 'add', 'open', 'go', 'submit', 'search'];
+const BROAD_VERBS = ['generate', 'create', 'write', 'build', 'make', 'test'];
+
+// Stop words filtered from extracted targets — these are prepositions/conjunctions that
+// appear adjacent to action verbs but are never element names. Also includes domain
+// noise words that match too broadly against scout element keys (cart, watch, subtotal, etc.)
+const TARGET_STOP_WORDS = new Set([
+  // prepositions / conjunctions
+  'a', 'an', 'the', 'for', 'with', 'and', 'or', 'to', 'in', 'on', 'of', 'that', 'this', 'it',
+  'is', 'are', 'was', 'be', 'at', 'by', 'as', 'up',
+  // test-domain nouns that cause over-matching
+  'cart', 'subtotal', 'ui', 'url', 'then', 'visible', 'page',
+  // generic product-type words (too broad — match every watch/jacket)
+  'watch', 'jacket', 'bag', 'item', 'product',
+  // assertion words
+  'contains', 'assert', 'verify', 'calculate',
+]);
 
 function gate4_filterScoutElements(scoutSummary, userPrompt, registryContext) {
   const tokens = userPrompt.toLowerCase().split(/\s+/);
 
-  // Strategy 1: extract target nouns adjacent to action verbs
+  // Strategy 1: scan forward from each action verb collecting all noun tokens until
+  // the next action verb or end of prompt. Filtered through TARGET_STOP_WORDS.
+  // This handles prompts like "add Aim Analog Watch and Endurance Watch to cart" where
+  // multiple product names follow a single action verb — [i+1, i+2] only captured the first.
   const targets = [];
   tokens.forEach((token, i) => {
-    if (ACTION_VERBS.includes(token) && tokens[i + 1]) {
-      targets.push(tokens[i + 1]);
-      if (tokens[i + 2]) targets.push(tokens[i + 2]);
+    if (ACTION_VERBS.includes(token)) {
+      let j = i + 1;
+      while (j < tokens.length && !ACTION_VERBS.includes(tokens[j]) && !BROAD_VERBS.includes(tokens[j])) {
+        if (!TARGET_STOP_WORDS.has(tokens[j]) && tokens[j].length > 1) {
+          targets.push(tokens[j]);
+        }
+        j++;
+      }
     }
   });
 
@@ -330,7 +415,17 @@ async function runAgent(userPrompt, options = {}) {
   console.log('[ORCHESTRATOR] Gate 2: index freshness ✓');
 
   // Gate 3 + 4
-  const filteredElements = gate4_filterScoutElements(scoutSummary, userPrompt, registryContext);
+  let filteredElements;
+  try {
+    filteredElements = gate4_filterScoutElements(scoutSummary, userPrompt, registryContext);
+  } catch (err) {
+    if (err.code === 'NO_ELEMENTS_MATCHED' && options.interactive) {
+      const userElement = await promptUserForElement(pageName);
+      filteredElements = [userElement];
+    } else {
+      throw err;
+    }
+  }
   console.log(`[ORCHESTRATOR] Gates 3+4: resolved ${filteredElements.length} element(s) ✓`);
 
   // Gate 5
@@ -405,6 +500,16 @@ async function runAgent(userPrompt, options = {}) {
   if (results.warnings.length) {
     console.log(`  Warnings (${results.warnings.length}):`);
     results.warnings.forEach(w => console.log(`    → ${w}`));
+  }
+
+  if ((validated.clarifications || []).length) {
+    console.log(`\n[ORCHESTRATOR] ⚠ Agent needs clarification before generating (${validated.clarifications.length}):`);
+    validated.clarifications.forEach((c, i) => console.log(`    ${i + 1}. ${c}`));
+    console.log(`\n  → Re-run with a more specific --prompt that answers the above.`);
+  }
+
+  if (!results.filesWritten.length && !results.registryUpdated.length && !(validated.clarifications || []).length) {
+    console.log(`  ⚠ No files written and no clarifications returned. Check agent context — scout may be missing target elements.`);
   }
 
   return { promptId, envelope: validated, results };

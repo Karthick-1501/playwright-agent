@@ -130,7 +130,10 @@ function filterScoutElements(scoutSummary, userPrompt, registryContext) {
     }
   }
 
-  // No match after all strategies — throw, do NOT silently dump all elements
+  // No match after all strategies — throw NO_ELEMENTS_MATCHED.
+  // If options.interactive is true, runAgent() catches this error and calls
+  // promptUserForElement() before re-entering the pipeline. Gate 4 itself
+  // always throws — the recovery lives one level up in runAgent().
   if (matched.length === 0) {
     throw new OrchestratorError(
       'NO_ELEMENTS_MATCHED',
@@ -146,6 +149,51 @@ function filterScoutElements(scoutSummary, userPrompt, registryContext) {
   });
 }
 ```
+
+---
+
+## GATE 4.5 — INTERACTIVE ELEMENT INPUT (fallback when Gate 4 misses)
+
+Triggered only when Gate 4 throws `NO_ELEMENTS_MATCHED` AND `options.interactive === true`.
+The orchestrator pauses execution, prompts the user via stdin to describe the missing element,
+and constructs a synthetic scout element in the exact shape Gate 4 normally returns.
+The agent is completely unaware of the difference — it receives the same element shape
+regardless of whether the source was Scout or user input.
+
+**This gate does NOT re-run Scout.** Re-running Scout would produce the same result
+because Scout missed the element due to DOM conditions (lazy load, hover-reveal, post-hydration
+rendering), not timing. The user describing the element is the correct recovery path.
+
+```js
+async function promptUserForElement(pageName) {
+  // Prompts user for: role, visible label, tier preference
+  // Returns a synthetic scout element:
+  return {
+    key: `${pageName}.${camel}`,       // camelCase derived from label
+    role,
+    label,
+    tier_suggestion: tierNum,
+    locator_suggestion,                // built from role + label + tier
+    disabled: false,
+    source: 'user-provided',           // distinguishes from scout/dom sources
+    dom_only: false,
+    registry_state: 'NONE',
+    resolved_selector: null,
+  };
+}
+```
+
+**Agent instruction:** When `source === 'user-provided'`, use `locator_suggestion` as-is.
+Comment the generated locator with `// [USER-PROVIDED]`.
+
+**CLI flag:** `--interactive` — opt-in only. Without this flag, Gate 4 errors as before.
+
+```bash
+node src/agent/cli.js --prompt "..." --page HyvaHome --interactive
+```
+
+**Billing note:** No API call is made while stdin is waiting. The Claude API is only
+called after all gates (including 4.5) pass. User input is zero-cost.
 
 ---
 
@@ -260,6 +308,7 @@ Surface these to the UI/caller. Do not swallow them silently.
 | Stale index halt + ack           | Orchestrator |
 | Registry state resolution        | Orchestrator |
 | Scout element filtering          | Orchestrator |
+| Interactive element input (Gate 4.5) | Orchestrator |
 | Pending patch deduplication      | Orchestrator |
 | Tier 3 permission gate           | Orchestrator |
 | Post-call envelope validation    | Orchestrator |

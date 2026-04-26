@@ -152,6 +152,16 @@ class BasePage {
     }
   }
 
+  async selectOption(registryKey, locatorFn, value) {
+    try {
+      await locatorFn(this.page).selectOption(value);
+      this._recordSuccess(registryKey, locatorFn);
+    } catch (err) {
+      if (_isLocatorError(err)) this._recordFailure(registryKey, locatorFn);
+      throw err;
+    }
+  }
+
   async getText(registryKey, locatorFn) {
     try {
       const text = await locatorFn(this.page).textContent();
