@@ -79,7 +79,7 @@ npm test
 npm run test:ci
 
 # Scout a page
-node src/agent/scout.js --url https://www.saucedemo.com --page Login
+node src/agent/scout.js --url https://demo.hyva.io/customer/account/login/ --page HyvaLogin
 
 # Check registry health
 npm run report
@@ -101,10 +101,10 @@ The agent requires an Anthropic API key.
 export ANTHROPIC_API_KEY=sk-ant-...
 
 # Generate test code from a natural language prompt
-npm run agent -- --prompt "generate a login test for standard_user" --page Login
+npm run agent -- --prompt "generate a login test for standard_user" --page HyvaLogin
 
 # With Tier 3 locators allowed
-npm run agent -- --prompt "click the submit button" --page Login --tier3
+npm run agent -- --prompt "click the submit button" --page HyvaLogin --tier3
 ```
 
 The orchestrator will:
@@ -124,14 +124,14 @@ The orchestrator will:
 ```
 ├── src/
 │   ├── elements/                   # Locator builder functions per page
-│   │   └── Login.elements.js
+│   │   └── HyvaLogin.elements.js
 │   ├── pages/                      # Page Objects
 │   │   ├── BasePage.js             # ActionEngine + AssertEngine (debounced registry I/O)
-│   │   └── Login.page.js
+│   │   └── HyvaLogin.page.js
 │   ├── tests/                      # Test specs
-│   │   └── login/
-│   │       ├── login_happy_path.spec.js
-│   │       └── login_sad_path.spec.js
+│   │   └── hyva-login/
+│   │       ├── hyva-login_happy_path.spec.js
+│   │       └── hyva-login_sad_path.spec.js
 │   ├── registry/                   # Selector health management
 │   │   ├── registry-manager.js     # CRUD + state machine
 │   │   └── heal.js                 # Candidate finding + healing
@@ -152,7 +152,7 @@ The orchestrator will:
 │   ├── method_index.json
 │   ├── pending_patches.json
 │   └── scout/
-│       └── Login_summary.json
+│       └── HyvaLogin_summary.json
 ├── .docs/
 │   ├── memory/
 │   │   ├── MASTER_MEMORY_v3.0.md   # Agent system prompt (operating constitution)
@@ -182,8 +182,8 @@ The orchestrator will:
 Scout is a zero-API-cost utility that extracts interactive elements via Chrome DevTools Protocol before any test generation. It uses a **dual-pass merge**: CDP accessibility tree (roles, labels) + DOM overlay (data-test, id, placeholder), with case-insensitive matching to maximize `a11y+dom` source confidence. The compact JSON summary reduces token cost by 70–95% on real-world pages.
 
 ```bash
-# SauceDemo login
-node src/agent/scout.js --url https://www.saucedemo.com --page Login
+# Hyva Login
+node src/agent/scout.js --url https://demo.hyva.io/customer/account/login/ --page HyvaLogin
 
 # Any page
 node src/agent/scout.js --url https://example.com/checkout --page Checkout
@@ -217,7 +217,7 @@ node src/agent/scout.js --url https://example.com/checkout --page Checkout
 
 ## Target Application
 
-[SauceDemo](https://www.saucedemo.com/) — Sauce Labs' demo e-commerce app used for test automation practice.
+[Hyva Demo](https://demo.hyva.io/) — Magento 2 frontend architecture used as the primary target for complex E2E test generation.
 
 ## License
 

@@ -44,7 +44,7 @@ The framework enforces strict structural rules. Pull requests violating these ru
 *   **Locator Tiers**: Always utilize the highest semantic tier possible.
     *   Tier 1: Semantic roles and labels (Preferred).
     *   Tier 2: Explicit test attributes (`data-test_id`).
-    *   Tier 3: Structural IDs (`#login-button`). Requires review.
+    *   Tier 3: Structural IDs (`#email`). Requires review.
     *   Tier 4: XPath, long class chains, or index-based selectors. Banned.
 
 ## Adding Tests

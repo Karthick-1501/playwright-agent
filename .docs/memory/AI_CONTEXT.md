@@ -8,7 +8,7 @@
 
 ### Phase Checklist
 
-- [x] Phase 1: Foundation — 4-layer architecture, login test, config
+- [x] Phase 1: Foundation — 4-layer architecture, hyva login test, config
 - [x] Phase 2: Scout — CDP dual-pass DOM scanner + benchmark data
 - [x] Phase 3: Registry & Self-Healing — RegistryManager + HealManager + unit tests
 - [x] Phase 4: Code Generator — orchestrator (7 gates) + Claude API integration
@@ -22,7 +22,7 @@
 ### v3.0 → v4.0 (current session)
 
 **Gap 1 fixed: Registry ↔ Elements file sync**
-- Problem: `registry.json` locators and `Login.elements.js` locators were independent, so healed selectors never reached test execution.
+- Problem: `registry.json` locators and `HyvaLogin.elements.js` locators were independent, so healed selectors never reached test execution.
 - Fix: `orchestrator._syncElementsFile()` patches the elements file after every `registry_updates` envelope entry. The heal loop is now end-to-end.
 
 **Gap 2 fixed: BasePage stub → full ActionEngine + AssertEngine**
@@ -46,7 +46,7 @@
 - Fix: `.github/workflows/playwright.yml` — unit tests + Playwright tests on push/PR, HTML report uploaded as artifact.
 
 **Gap 7 fixed: `_scoreCandidate` misfires on substring matches**
-- Noted: scorer uses substring matching which can prefer `logoutButton` over `loginButton`. Tier priority mitigates this (exact same-tier case is the risk). Flagged for Phase 6 improvement — exact-key match should short-circuit fuzzy scoring.
+- Noted: scorer uses substring matching which can prefer `signOutButton` over `signInButton`. Tier priority mitigates this (exact same-tier case is the risk). Flagged for Phase 6 improvement — exact-key match should short-circuit fuzzy scoring.
 
 ### v2.1 → v3.0
 

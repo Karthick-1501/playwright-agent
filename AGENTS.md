@@ -45,11 +45,11 @@ This ensures every interaction is tracked in the registry.
 
 ```javascript
 // CORRECT
-await this.fill('Login.usernameInput', LoginElements.usernameInput, username);
-await this.click('Login.loginButton', LoginElements.loginButton);
+await this.fill('HyvaLogin.emailInput', HyvaLoginElements.emailInput, email);
+await this.click('HyvaLogin.signInButton', HyvaLoginElements.signInButton);
 
 // WRONG — bypasses registry tracking
-await LoginElements.usernameInput(this.page).fill(username);
+await HyvaLoginElements.emailInput(this.page).fill(email);
 ```
 
 ### Registry I/O
@@ -99,10 +99,10 @@ Apply the highest available tier. Tier 4 is banned.
 The registry starts **empty** — BasePage dynamically populates it during test execution.
 
 **Files:**
-- `.agent/registry.json` — selector health per element key (e.g. `Login.usernameInput`)
+- `.agent/registry.json` — selector health per element key (e.g. `HyvaLogin.emailInput`)
 - `.agent/method_index.json` — all page object methods with signatures + dependencies
 - `.agent/pending_patches.json` — staging area for config patches proposed by the agent
-- `.agent/scout/` — Scout output per page (e.g. `Login_summary.json`)
+- `.agent/scout/` — Scout output per page (e.g. `HyvaLogin_summary.json`)
 
 **Health states:**
 
@@ -113,7 +113,7 @@ The registry starts **empty** — BasePage dynamically populates it during test 
 | `BROKEN` | `< 0.50` | Auto-heal with candidate from Scout |
 | `QUARANTINE` | `heal_attempts ≥ 2` | Block — manual review required |
 
-Registry keys use the format `{Page}.{elementName}` (e.g. `Login.loginButton`).
+Registry keys use the format `{Page}.{elementName}` (e.g. `HyvaLogin.signInButton`).
 
 **The heal loop is end-to-end:**
 1. BasePage records success/failure after every interaction (debounced flush to disk)
@@ -123,7 +123,7 @@ Registry keys use the format `{Page}.{elementName}` (e.g. `Login.loginButton`).
 ## Config
 
 - **URLs / env**: `config/execution.config.js` — exports `{ baseUrl }`
-- **Test data**: `config/testdata.config.js` — access via `TestData.get('login.standard_user')`
+- **Test data**: `config/testdata.config.js` — access via `TestData.get('hyva_login.standard_user')`
 - **Playwright config**: `playwright.config.js` — CI-aware (`process.env.CI`)
 
 ## File Naming Conventions
@@ -167,10 +167,10 @@ npm install && npx playwright install
 npm test                    # headed
 npm run test:ci             # headless (CI mode)
 npm run test:registry       # unit tests only
-npm run scout -- --url https://www.saucedemo.com --page Login
+npm run scout -- --url https://demo.hyva.io/customer/account/login/ --page HyvaLogin
 npm run heal
 npm run report
-npm run agent -- --prompt "generate login test" --page Login
+npm run agent -- --prompt "generate login test" --page HyvaLogin
 ```
 
 ## Phase Status

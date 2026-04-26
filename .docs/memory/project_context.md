@@ -19,7 +19,7 @@ A portfolio/LinkedIn project demonstrating AI-assisted test automation. The fram
 
 ## Target Application
 
-SauceDemo — https://www.saucedemo.com
+Hyva Demo — https://demo.hyva.io
 
 ## Budget
 
@@ -40,7 +40,7 @@ Architecture:
 - Sync elements file after every registry heal (closes registry↔elements gap)
 
 Testing:
-- Add login_sad_path.spec.js (locked_out + invalid credentials)
+- Add hyva-login_sad_path.spec.js (invalid credentials)
 - Add GitHub Actions CI workflow
 
 CLI:
